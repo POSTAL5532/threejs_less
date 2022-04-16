@@ -1,21 +1,20 @@
 import './style.css';
+import "core-js/stable";
+import {render} from "react-dom";
 import {
     PerspectiveCamera,
     Scene,
     WebGLRenderer,
     Clock,
     AxesHelper,
-    AmbientLight,
-    DirectionalLight,
+    DirectionalLight, DirectionalLightHelper, PCFSoftShadowMap, AmbientLight,
 } from 'three';
 import {OrbitControls} from "three/examples/jsm/controls/OrbitControls";
 import {GUI} from "dat.gui";
-import { Interaction } from './three-interaction';
-import {FontLoader} from "three/examples/jsm/loaders/FontLoader";
-import {TextGeometry} from "three/examples/jsm/geometries/TextGeometry";
-import {addGroundToScene} from "./Ground";
-import {addHouse1ToScene, addHouse2ToScene} from "./House1";
-
+import {BigHouse} from "./buildings/BigHouse";
+import {CityLabel} from "./buildings/CityLabel";
+import {CylinderHouse} from "./buildings/CylinderHouse";
+import {Ground} from "./Ground";
 
 /**
  * Base
@@ -57,9 +56,7 @@ window.addEventListener('resize', () => {
  */
 // Base camera
 const camera = new PerspectiveCamera(75, sizes.width / sizes.height, 0.1, 100);
-camera.position.x = 7;
-camera.position.y = 4;
-camera.position.z = 7;
+camera.position.set(3, 3, 5);
 scene.add(camera);
 
 // Controls
@@ -69,7 +66,7 @@ controls.enableDamping = true;
 /**
  * Renderer
  */
-const renderer = new WebGLRenderer({canvas: canvas});
+const renderer = new WebGLRenderer({canvas: canvas, antialias: true});
 renderer.setSize(sizes.width, sizes.height);
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
@@ -77,36 +74,41 @@ renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
  * Lights
  */
 const lightColors = {
-    ambientLightColor: 0xffffff,
-    directionalLightLightColor: 0xffffff,
+    directionalLightColor_DAY: "#ffffff",
+    directionalLightColor_NIGHT: "#6181a0"
 }
 
-const ambientLight = new AmbientLight(lightColors.ambientLightColor, 1);
-const directionalLight = new DirectionalLight(lightColors.directionalLightLightColor, 1);
+const ambientLight = new AmbientLight(lightColors.directionalLightColor_DAY, 0.5);
 scene.add(ambientLight);
+
+const directionalLight = new DirectionalLight(lightColors.directionalLightColor_DAY, 3);
+directionalLight.position.set(-2.32, 2.83, -2.54);
 scene.add(directionalLight);
 
-const interaction = new Interaction(renderer, scene, camera);
+const lightHelper = new DirectionalLightHelper(directionalLight, 1)
+scene.add(lightHelper);
 
-addGroundToScene(scene, interaction);
-addHouse1ToScene(scene, interaction);
-addHouse2ToScene(scene, interaction);
+gui.add(directionalLight.position, "x").min(-10).max(10).step(0.01);
+gui.add(directionalLight.position, "y").min(-10).max(10).step(0.01);
+gui.add(directionalLight.position, "z").min(-10).max(10).step(0.01);
+
+const cylinderHouse = new CylinderHouse();
+scene.add(new Ground());
+scene.add(new BigHouse());
+scene.add(cylinderHouse);
+scene.add(new CityLabel());
 
 /**
  * Animate
  */
 const clock = new Clock();
 
+setTimeout(() => cylinderHouse.onNight(), 2000)
+
 const tick = () => {
     const elapsedTime = clock.getElapsedTime();
-
-    // Update controls
     controls.update();
-
-    // Render
     renderer.render(scene, camera);
-
-    // Call tick again on the next frame
     window.requestAnimationFrame(tick);
 }
 

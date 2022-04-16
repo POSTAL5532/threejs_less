@@ -1,6 +1,22 @@
-import {BoxGeometry, Mesh, MeshLambertMaterial, MeshPhongMaterial, Scene} from "three";
+import {BoxGeometry, Mesh, MeshLambertMaterial, MeshPhongMaterial, Object3D, Scene} from "three";
 import {Interaction} from "./three-interaction";
+import {MODELS_LOADER} from "./utils";
 
+export class Ground extends Object3D {
+
+    constructor() {
+        super();
+        this.init();
+    }
+
+    public init = () => {
+        MODELS_LOADER.load("/models/ground_water.glb", model => {
+            this.add(model.scene);
+        })
+    }
+}
+
+/*
 export const addGroundToScene = (scene: Scene, interaction: Interaction) => {
     const geometryColors = {
         groundColor: "#a5784a",
@@ -38,4 +54,4 @@ export const addGroundToScene = (scene: Scene, interaction: Interaction) => {
     );
     grown.position.y = 1.2;
     scene.add(grown);
-}
+}*/
